@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle2, Clock, FileText, Plus, Trash2, Eye, EyeOff, Download } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, FileText, Plus, Trash2, Eye, EyeOff, Download, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -108,13 +108,13 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={() => logout()}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Logout
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-full sm:w-auto">
+                  <Button className="gap-2 bg-gray-900 hover:bg-gray-800 text-white transition-colors w-full sm:w-auto">
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">New Framework</span>
                     <span className="sm:hidden">Add</span>
@@ -151,57 +151,57 @@ export default function Dashboard() {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
             >
-              <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
+              <motion.div variants={itemVariants} whileHover={{ y: -2 }}>
+                <Card className="p-6 hover:shadow-md transition-all duration-300 bg-white border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm font-medium">📋 Frameworks</p>
-                      <p className="text-3xl font-bold mt-2 text-blue-900">{stats?.totalFrameworks || 0}</p>
+                      <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">Frameworks</p>
+                      <p className="text-4xl font-light mt-3 text-gray-900">{stats?.totalFrameworks || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-blue-200 rounded-lg flex items-center justify-center text-2xl">
-                      ✅
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
-              <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
+              <motion.div variants={itemVariants} whileHover={{ y: -2 }}>
+                <Card className="p-6 hover:shadow-md transition-all duration-300 bg-white border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm font-medium">🎯 Avg Compliance</p>
-                      <p className="text-3xl font-bold mt-2 text-green-900">{stats?.averageComplianceScore || 0}%</p>
+                      <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">Avg Compliance</p>
+                      <p className="text-4xl font-light mt-3 text-gray-900">{stats?.averageComplianceScore || 0}%</p>
                     </div>
-                    <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center text-2xl">
-                      📊
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
-              <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200">
+              <motion.div variants={itemVariants} whileHover={{ y: -2 }}>
+                <Card className="p-6 hover:shadow-md transition-all duration-300 bg-white border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm font-medium">⏰ Expiring Licenses</p>
-                      <p className="text-3xl font-bold mt-2 text-yellow-900">{stats?.expiringLicensesCount || 0}</p>
+                      <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">Expiring Licenses</p>
+                      <p className="text-4xl font-light mt-3 text-gray-900">{stats?.expiringLicensesCount || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-yellow-200 rounded-lg flex items-center justify-center text-2xl">
-                      ⚠️
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <AlertCircle className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
-              <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200">
+              <motion.div variants={itemVariants} whileHover={{ y: -2 }}>
+                <Card className="p-6 hover:shadow-md transition-all duration-300 bg-white border-gray-100">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm font-medium">📝 Pending Tasks</p>
-                      <p className="text-3xl font-bold mt-2 text-purple-900">{stats?.pendingTasks || 0}</p>
+                      <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">Pending Tasks</p>
+                      <p className="text-4xl font-light mt-3 text-gray-900">{stats?.pendingTasks || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-purple-200 rounded-lg flex items-center justify-center text-2xl">
-                      ✏️
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-gray-400" />
                     </div>
                   </div>
                 </Card>
