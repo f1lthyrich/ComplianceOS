@@ -434,6 +434,7 @@ function DashboardPreviewSection() {
 
 // Pricing Section Component
 function PricingSection() {
+  const { isAuthenticated } = useAuth();
   const plans = [
     {
       name: "Basic",
@@ -569,8 +570,15 @@ function PricingSection() {
                     plan.highlighted ? "btn-primary" : "btn-outline"
                   }`}
                   size="lg"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      window.location.href = '/dashboard';
+                    } else {
+                      window.location.href = getLoginUrl();
+                    }
+                  }}
                 >
-                  {plan.cta}
+                  {isAuthenticated ? 'Go to Dashboard' : plan.cta}
                 </Button>
 
                 <div className="space-y-4 flex-1">
