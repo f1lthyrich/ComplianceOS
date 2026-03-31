@@ -438,7 +438,7 @@ function PricingSection() {
   const plans = [
     {
       name: "Basic",
-      price: "$299",
+      price: "$49",
       period: "/month",
       description: "Perfect for small teams getting started",
       features: [
@@ -446,14 +446,15 @@ function PricingSection() {
         "Basic compliance tracking",
         "Monthly reports",
         "Email support",
-        "API access",
+        "Custom Phone Support",
       ],
       cta: "Get Started",
       highlighted: false,
+      stripeLink: "https://buy.stripe.com/test_7sY5kC5897TcdJbg8F0x200",
     },
     {
       name: "Pro",
-      price: "$799",
+      price: "$199",
       period: "/month",
       description: "For growing compliance operations",
       features: [
@@ -461,17 +462,18 @@ function PricingSection() {
         "Advanced compliance tracking",
         "Real-time alerts",
         "Priority support",
-        "Advanced API access",
         "Custom integrations",
         "Team collaboration",
+        "Custom Phone Support",
       ],
       cta: "Start Free Trial",
       highlighted: true,
+      stripeLink: "https://buy.stripe.com/test_3cIfZg301a1k20t6y50x201",
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      period: "pricing",
+      name: "Advanced",
+      price: "$299",
+      period: "/month",
       description: "For large-scale operations",
       features: [
         "Everything in Pro",
@@ -480,10 +482,11 @@ function PricingSection() {
         "Advanced security",
         "SLA guarantee",
         "On-premise option",
-        "24/7 phone support",
+        "Custom Phone Support",
       ],
-      cta: "Contact Sales",
+      cta: "Get Started",
       highlighted: false,
+      stripeLink: "https://buy.stripe.com/test_9B600i445ddwgVn5u10x202",
     },
   ];
 
@@ -571,14 +574,16 @@ function PricingSection() {
                   }`}
                   size="lg"
                   onClick={() => {
-                    if (isAuthenticated) {
+                    if (plan.stripeLink) {
+                      window.location.href = plan.stripeLink;
+                    } else if (isAuthenticated) {
                       window.location.href = '/dashboard';
                     } else {
                       window.location.href = getLoginUrl();
                     }
                   }}
                 >
-                  {isAuthenticated ? 'Go to Dashboard' : plan.cta}
+                  {plan.cta}
                 </Button>
 
                 <div className="space-y-4 flex-1">
