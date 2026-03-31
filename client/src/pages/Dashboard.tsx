@@ -1,5 +1,5 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Dashboard Stats
@@ -97,18 +97,27 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600 mt-1">Welcome back, {user?.name}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome back, {user?.name}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logout()}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Logout
+              </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="gap-2">
+                  <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-full sm:w-auto">
                     <Plus className="w-4 h-4" />
-                    New Framework
+                    <span className="hidden sm:inline">New Framework</span>
+                    <span className="sm:hidden">Add</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -143,56 +152,56 @@ export default function Dashboard() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
             >
               <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow">
+                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm">Frameworks</p>
-                      <p className="text-3xl font-bold mt-2">{stats?.totalFrameworks || 0}</p>
+                      <p className="text-gray-600 text-sm font-medium">📋 Frameworks</p>
+                      <p className="text-3xl font-bold mt-2 text-blue-900">{stats?.totalFrameworks || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-blue-200 rounded-lg flex items-center justify-center text-2xl">
+                      ✅
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow">
+                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm">Avg Compliance</p>
-                      <p className="text-3xl font-bold mt-2">{stats?.averageComplianceScore || 0}%</p>
+                      <p className="text-gray-600 text-sm font-medium">🎯 Avg Compliance</p>
+                      <p className="text-3xl font-bold mt-2 text-green-900">{stats?.averageComplianceScore || 0}%</p>
                     </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center text-2xl">
+                      📊
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow">
+                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm">Expiring Licenses</p>
-                      <p className="text-3xl font-bold mt-2">{stats?.expiringLicensesCount || 0}</p>
+                      <p className="text-gray-600 text-sm font-medium">⏰ Expiring Licenses</p>
+                      <p className="text-3xl font-bold mt-2 text-yellow-900">{stats?.expiringLicensesCount || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    <div className="w-12 h-12 bg-yellow-200 rounded-lg flex items-center justify-center text-2xl">
+                      ⚠️
                     </div>
                   </div>
                 </Card>
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <Card className="p-6 hover:shadow-lg transition-shadow">
+                <Card className="p-6 hover:shadow-lg transition-shadow bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-600 text-sm">Pending Tasks</p>
-                      <p className="text-3xl font-bold mt-2">{stats?.pendingTasks || 0}</p>
+                      <p className="text-gray-600 text-sm font-medium">📝 Pending Tasks</p>
+                      <p className="text-3xl font-bold mt-2 text-purple-900">{stats?.pendingTasks || 0}</p>
                     </div>
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 bg-purple-200 rounded-lg flex items-center justify-center text-2xl">
+                      ✏️
                     </div>
                   </div>
                 </Card>
