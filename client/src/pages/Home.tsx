@@ -82,7 +82,7 @@ function HeroSection() {
         <motion.div variants={itemVariants} className="flex gap-4 justify-center flex-wrap">
           {isAuthenticated ? (
             <Button size="lg" className="btn-primary" asChild>
-              <a href="/benefits">Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" style={{ display: 'inline' }} /></a>
+              <a href="/#pricing">Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" style={{ display: 'inline' }} /></a>
             </Button>
           ) : (
             <>
