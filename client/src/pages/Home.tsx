@@ -81,16 +81,16 @@ function HeroSection() {
         {/* CTA Buttons */}
         <motion.div variants={itemVariants} className="flex gap-4 justify-center flex-wrap">
           {isAuthenticated ? (
-            <Button size="lg" className="btn-primary">
-              Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" />
+            <Button size="lg" className="btn-primary" asChild>
+              <a href="/benefits">Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" style={{ display: 'inline' }} /></a>
             </Button>
           ) : (
             <>
               <Button size="lg" className="btn-primary" asChild>
                 <a href={getLoginUrl()}>Get Started Free</a>
               </Button>
-              <Button size="lg" variant="outline" className="btn-outline">
-                View Demo
+              <Button size="lg" variant="outline" className="btn-outline" asChild>
+                <a href={getLoginUrl()}>View Demo</a>
               </Button>
             </>
           )}
