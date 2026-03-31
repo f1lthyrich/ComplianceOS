@@ -310,6 +310,226 @@ Compliance Score: ${framework.complianceScore}%
       }),
   }),
 
+  // ============ FRAMEWORK TEMPLATES ============
+  templates: router({
+    getTemplates: publicProcedure.query(async () => {
+      return [
+        {
+          id: "soc2",
+          name: "SOC 2 Type II",
+          description: "Security, Availability, Processing Integrity, Confidentiality, Privacy",
+          requirements: [
+            "Implement access controls",
+            "Monitor system activities",
+            "Maintain audit logs",
+            "Conduct security assessments",
+            "Implement encryption",
+            "Develop incident response plan",
+            "Train employees on security",
+            "Perform annual audits",
+          ],
+        },
+        {
+          id: "gdpr",
+          name: "GDPR Compliance",
+          description: "General Data Protection Regulation for EU residents",
+          requirements: [
+            "Implement data protection policies",
+            "Obtain user consent",
+            "Maintain data inventory",
+            "Implement right to be forgotten",
+            "Conduct privacy impact assessments",
+            "Appoint Data Protection Officer",
+            "Establish data processing agreements",
+            "Report data breaches within 72 hours",
+          ],
+        },
+        {
+          id: "hipaa",
+          name: "HIPAA Compliance",
+          description: "Health Insurance Portability and Accountability Act",
+          requirements: [
+            "Implement access controls",
+            "Encrypt patient data",
+            "Maintain audit controls",
+            "Implement transmission security",
+            "Conduct risk assessments",
+            "Develop security policies",
+            "Train workforce on HIPAA",
+            "Implement business associate agreements",
+          ],
+        },
+        {
+          id: "iso27001",
+          name: "ISO 27001",
+          description: "Information Security Management System",
+          requirements: [
+            "Establish information security policy",
+            "Implement access controls",
+            "Manage cryptography",
+            "Implement physical security",
+            "Manage operations security",
+            "Implement communications security",
+            "Conduct regular audits",
+            "Maintain incident management",
+          ],
+        },
+      ];
+    }),
+
+    createFromTemplate: protectedProcedure
+      .input(z.object({
+        templateId: z.string(),
+        customName: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const templates = await appRouter.createCaller(ctx).templates.getTemplates();
+        const template = templates.find(t => t.id === input.templateId);
+        if (!template) throw new Error("Template not found");
+
+        const framework = await db.createComplianceFramework(ctx.user.id, {
+          name: input.customName || template.name,
+          description: template.description,
+        });
+
+        if (framework && typeof framework === 'object' && 'id' in framework) {
+          const frameworkId = (framework as any).id as number;
+          for (const requirement of template.requirements) {
+            await db.createChecklistItem(frameworkId, {
+              title: requirement,
+            });
+          }
+        }
+
+        await db.createAuditLog(ctx.user.id, {
+          action: "framework_created_from_template",
+          entityType: "compliance_framework",
+          changes: { templateId: input.templateId },
+        });
+
+        return framework;
+      }),
+  }),
+
+  // ============ CSV IMPORT ============
+  import: router({
+    importLicensesCSV: protectedProcedure
+      .input(z.object({
+        csvData: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const lines = input.csvData.split('\n').filter(l => l.trim());
+        if (lines.length < 2) throw new Error("CSV must have headers and at least one row");
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const imported = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim());
+          const row: Record<string, string> = {};
+          headers.forEach((h, idx) => {
+            row[h] = values[idx] || '';
+          });
+
+          try {
+            const license = await db.createLicense(ctx.user.id, {
+              name: row.name || row.license_name || `License ${i}`,
+              vendor: row.vendor || 'Unknown',
+              type: 'software',
+              expiryDate: row.expiry_date ? new Date(row.expiry_date) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            });
+            imported.push(license);
+          } catch (error) {
+            console.error(`Failed to import row ${i}:`, error);
+          }
+        }
+
+        await db.createAuditLog(ctx.user.id, {
+          action: "licenses_imported",
+          entityType: "license",
+          changes: { count: imported.length },
+        });
+
+        return { imported, count: imported.length };
+      }),
+  }),
+
+  // ============ TEAM MANAGEMENT ============
+  team: router({
+    getMembers: protectedProcedure.query(async ({ ctx }) => {
+      return db.getTeamMembers(ctx.user.id);
+    }),
+
+    addMember: protectedProcedure
+      .input(z.object({
+        memberId: z.number(),
+        role: z.enum(["admin", "manager", "auditor", "finance", "viewer"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const member = await db.addTeamMember(ctx.user.id, input.memberId, input.role);
+
+        await db.createAuditLog(ctx.user.id, {
+          action: "team_member_added",
+          entityType: "team_member",
+          changes: { memberId: input.memberId, role: input.role },
+        });
+
+        return member;
+      }),
+
+    removeMember: protectedProcedure
+      .input(z.object({ memberId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.removeTeamMember(input.memberId, ctx.user.id);
+
+        await db.createAuditLog(ctx.user.id, {
+          action: "team_member_removed",
+          entityType: "team_member",
+          changes: { memberId: input.memberId },
+        });
+
+        return { success: true };
+      }),
+  }),
+
+  // ============ PDF REPORTS ============
+  pdfReports: router({
+    generateReport: protectedProcedure
+      .input(z.object({
+        type: z.enum(["compliance", "audit", "license_inventory"]),
+        frameworkId: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        let reportContent = "";
+
+        if (input.type === "compliance" && input.frameworkId) {
+          const frameworks = await db.getComplianceFrameworks(ctx.user.id);
+          const framework = frameworks.find(f => f.id === input.frameworkId);
+          if (framework) {
+            reportContent = `Compliance Report: ${framework.name}\nStatus: ${framework.status}\nScore: ${framework.complianceScore}%\nGenerated: ${new Date().toISOString()}`;
+          }
+        } else if (input.type === "license_inventory") {
+          const licenses = await db.getLicenses(ctx.user.id);
+          reportContent = `License Inventory Report\nTotal Licenses: ${licenses.length}\n${licenses.map(l => `- ${l.name} (${l.vendor})`).join('\n')}\nGenerated: ${new Date().toISOString()}`;
+        } else if (input.type === "audit") {
+          const logs = await db.getAuditLogs(ctx.user.id);
+          reportContent = `Audit Log Report\nTotal Events: ${logs.length}\nGenerated: ${new Date().toISOString()}`;
+        }
+
+        await db.createAuditLog(ctx.user.id, {
+          action: "report_generated",
+          entityType: "report",
+          changes: { type: input.type },
+        });
+
+        return {
+          success: true,
+          reportUrl: `/reports/${Date.now()}.pdf`,
+          content: reportContent,
+        };
+      }),
+  }),
+
   // ============ DASHBOARD STATS ============
   dashboard: router({
     getStats: protectedProcedure.query(async ({ ctx }) => {

@@ -103,7 +103,7 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-1">Welcome back, {user?.name}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="gap-2">
@@ -116,6 +116,51 @@ export default function Dashboard() {
                     <DialogTitle>Create Compliance Framework</DialogTitle>
                   </DialogHeader>
                   <CreateFrameworkForm onSuccess={() => refetchStats()} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    From Template
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Select Framework Template</DialogTitle>
+                  </DialogHeader>
+                  <TemplateSelector onSuccess={() => refetchStats()} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Import CSV
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Import Licenses from CSV</DialogTitle>
+                  </DialogHeader>
+                  <CSVImportForm onSuccess={() => refetchStats()} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <FileText className="w-4 h-4" />
+                    Generate Report
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Generate PDF Report</DialogTitle>
+                  </DialogHeader>
+                  <PDFReportGenerator onSuccess={() => refetchStats()} />
                 </DialogContent>
               </Dialog>
             </div>
@@ -629,5 +674,146 @@ function GenerateReportForm({ frameworks, onSuccess }: { frameworks: any[]; onSu
       </div>
       <Button type="submit" className="w-full">Generate Report</Button>
     </form>
+  );
+}
+
+// Template Selector Component
+function TemplateSelector({ onSuccess }: { onSuccess: () => void }) {
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [customName, setCustomName] = useState("");
+  const { data: templates } = trpc.templates.getTemplates.useQuery();
+  const mutation = trpc.templates.createFromTemplate.useMutation({
+    onSuccess: () => {
+      toast.success("Framework created from template");
+      onSuccess();
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      {templates?.map((t: any) => (
+        <div
+          key={t.id}
+          onClick={() => setSelectedTemplate(t.id)}
+          className={`p-4 border rounded cursor-pointer ${
+            selectedTemplate === t.id ? "border-blue-500 bg-blue-50" : "border-gray-200"
+          }`}
+        >
+          <h3 className="font-semibold">{t.name}</h3>
+          <p className="text-sm text-gray-600">{t.description}</p>
+        </div>
+      ))}
+      <div>
+        <Label>Custom Name (Optional)</Label>
+        <Input
+          value={customName}
+          onChange={(e) => setCustomName(e.target.value)}
+          placeholder="My Custom Framework"
+        />
+      </div>
+      <Button
+        onClick={() =>
+          mutation.mutate({
+            templateId: selectedTemplate,
+            customName: customName || undefined,
+          })
+        }
+        disabled={!selectedTemplate}
+        className="w-full"
+      >
+        Create Framework
+      </Button>
+    </div>
+  );
+}
+
+// CSV Import Component
+function CSVImportForm({ onSuccess }: { onSuccess: () => void }) {
+  const [csvData, setCsvData] = useState("");
+  const mutation = trpc.import.importLicensesCSV.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Imported ${data.count} licenses`);
+      onSuccess();
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>CSV Data</Label>
+        <textarea
+          value={csvData}
+          onChange={(e) => setCsvData(e.target.value)}
+          placeholder="name,vendor,expiry_date\nLicense1,Vendor1,2025-12-31\nLicense2,Vendor2,2026-06-30"
+          className="w-full h-32 p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <Button
+        onClick={() => mutation.mutate({ csvData })}
+        disabled={!csvData}
+        className="w-full"
+      >
+        Import Licenses
+      </Button>
+    </div>
+  );
+}
+
+// PDF Report Generator
+function PDFReportGenerator({ onSuccess }: { onSuccess: () => void }) {
+  const [reportType, setReportType] = useState("compliance");
+  const [frameworkId, setFrameworkId] = useState("");
+  const { data: frameworks } = trpc.compliance.getFrameworks.useQuery();
+  const mutation = trpc.pdfReports.generateReport.useMutation({
+    onSuccess: (data) => {
+      toast.success("Report generated");
+      onSuccess();
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Report Type</Label>
+        <Select value={reportType} onValueChange={setReportType}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="compliance">Compliance Status</SelectItem>
+            <SelectItem value="license_inventory">License Inventory</SelectItem>
+            <SelectItem value="audit">Audit Log</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {reportType === "compliance" && (
+        <div>
+          <Label>Framework</Label>
+          <Select value={frameworkId} onValueChange={setFrameworkId}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {frameworks?.map((f) => (
+                <SelectItem key={f.id} value={f.id.toString()}>
+                  {f.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <Button
+        onClick={() =>
+          mutation.mutate({
+            type: reportType as any,
+            frameworkId: reportType === "compliance" ? parseInt(frameworkId) : undefined,
+          })
+        }
+        className="w-full"
+      >
+        Generate PDF
+      </Button>
+    </div>
   );
 }
